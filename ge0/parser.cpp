@@ -50,6 +50,32 @@ bool Ge0Parser::Parse(std::string const & url, Result & result)
 
 bool Ge0Parser::ParseAfterPrefix(std::string const & url, size_t from, Result & result)
 {
+  std::string remaining = url.substr(from);
+  if (remaining.find(',') != std::string::npos) {
+    // Optional slash after coordinates
+    size_t slashPos = remaining.find('/');
+    std::string coords = (slashPos == std::string::npos) ? remaining : remaining.substr(0, slashPos);
+
+    size_t commaPos = coords.find(',');
+    if (commaPos == std::string::npos)
+    return false;
+
+    std::string latStr = coords.substr(0, commaPos);
+    std::string lonStr = coords.substr(commaPos + 1);
+
+    double lat, lon;
+    if (!strings::to_double(latStr, lat) || !strings::to_double(lonStr, lon))
+    return false;
+
+    result.m_lat = lat;
+    result.m_lon = lon;
+    result.m_zoomLevel = 18.0;
+
+    if (slashPos != std::string::npos && slashPos + 1 < remaining.size())
+    result.m_name = DecodeName(remaining.substr(slashPos + 1));
+    return true;
+  }
+
   size_t const kEncodedZoomAndCoordinatesLength = 10;
   if (url.size() < from + kEncodedZoomAndCoordinatesLength)
     return false;
