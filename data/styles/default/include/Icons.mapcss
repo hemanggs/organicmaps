@@ -966,6 +966,7 @@ node|z17-[healthcare=alternative],
 area|z17-[healthcare=alternative],
 node|z17-[healthcare=audiologist],
 area|z17-[healthcare=audiologist],
+node|z18-[highway=ladder],
 node|z17-[healthcare=blood_donation],
 area|z17-[healthcare=blood_donation],
 node|z17-[healthcare=optometrist],
@@ -1607,6 +1608,9 @@ area|z16-[man_made=windmill]
 node|z17-[man_made=windmill],
 area|z17-[man_made=windmill]
 {icon-min-distance: 20;}
+
+node|z18-[highway=ladder],
+{icon-image:audiologist-m.svg;}
 
 node|z17-[amenity=casino],
 area|z17-[amenity=casino]
