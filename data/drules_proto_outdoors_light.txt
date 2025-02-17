@@ -25349,6 +25349,57 @@ cont {
   }
 }
 cont {
+  name: "highway-ladder"
+  element {
+    scale: 18
+    symbol {
+      name: "audiologist-m"
+      priority: 2810
+    }
+    caption {
+      primary {
+        height: 10
+        color: 4473924
+        offset_y: 1
+        is_optional: true
+      }
+      priority: -7190
+    }
+  }
+  element {
+    scale: 19
+    symbol {
+      name: "audiologist-m"
+      priority: 2810
+    }
+    caption {
+      primary {
+        height: 10
+        color: 4473924
+        offset_y: 1
+        is_optional: true
+      }
+      priority: -7190
+    }
+  }
+  element {
+    scale: 20
+    symbol {
+      name: "audiologist-m"
+      priority: 2810
+    }
+    caption {
+      primary {
+        height: 10
+        color: 4473924
+        offset_y: 1
+        is_optional: true
+      }
+      priority: -7190
+    }
+  }
+}
+cont {
   name: "highway-living_street"
   element {
     scale: 12
