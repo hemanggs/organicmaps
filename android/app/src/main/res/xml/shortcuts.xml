@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+  <shortcut
+      android:shortcutId="search"
+      android:enabled="true"
+      android:icon="@drawable/ic_search"
+      android:shortcutShortLabel="@string/search"
+      tools:targetApi="n_mr1">
+    <intent
+        android:action="android.intent.action.VIEW"
+        android:targetPackage="app.organicmaps.debug"
+        android:targetClass="app.organicmaps.search.SearchActivity"
+        android:targetActivity="app.organicmaps.search.SearchActivity" />
+  </shortcut>
+  <shortcut
+      android:shortcutId="bookmarks"
+      android:enabled="true"
+      android:icon="@drawable/ic_bookmarks"
+      android:shortcutShortLabel="@string/bookmarks"
+      tools:targetApi="n_mr1">
+    <intent
+        android:action="android.intent.action.VIEW"
+        android:targetPackage="app.organicmaps.debug"
+        android:targetClass="app.organicmaps.bookmarks.BookmarkListActivity"
+        android:targetActivity="app.organicmaps.bookmarks.BookmarkListActivity" />
+        />
+  </shortcut>
+</shortcuts>
