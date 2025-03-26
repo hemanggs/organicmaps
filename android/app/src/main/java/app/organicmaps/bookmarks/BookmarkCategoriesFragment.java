@@ -83,10 +83,43 @@ public class BookmarkCategoriesFragment extends BaseMwmRecyclerFragment<Bookmark
       if( activityResult.getResultCode() == Activity.RESULT_OK)
         onImportDirectoryResult(activityResult.getData());
     });
+  private final ActivityResultLauncher<Intent> startImportFileForResult =
+      registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+          activityResult -> {
+            if (activityResult.getResultCode() == Activity.RESULT_OK && activityResult.getData() != null) {
+              Intent data = activityResult.getData();
+              ContentResolver resolver = requireActivity().getContentResolver();
+              File tempDir = new File(StorageUtils.getTempPath(requireActivity().getApplication()));
+              // Check if multiple files were selected.
+              if (data.getClipData() != null) {
+                int count = data.getClipData().getItemCount();
+                List<Uri> uris = new ArrayList<>();
+                for (int i = 0; i < count; i++) {
+                  Uri fileUri = data.getClipData().getItemAt(i).getUri();
+                  if (fileUri != null) {
+                    uris.add(fileUri);
+                  }
+                }
+                // Import multiple files.
+                BookmarkManager.INSTANCE.importBookmarksFiles(resolver, uris, tempDir);
+              } else {
+                // Otherwise, a single file was selected.
+                Uri fileUri = data.getData();
+                if (fileUri != null) {
+                  BookmarkManager.INSTANCE.importBookmarksFile(resolver, fileUri, tempDir);
+                }
+              }
+            }
+          });
+
+
 
   private final ActivityResultLauncher<Intent> startBookmarkSettingsForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResult -> {
     // not handled at the moment
   });
+
+
+
 
 
   @Override
@@ -276,6 +309,14 @@ public class BookmarkCategoriesFragment extends BaseMwmRecyclerFragment<Bookmark
       startImportDirectoryForResult.launch(intent);
     else
       showNoFileManagerError();
+  }
+  @Override
+  public void onImportFileButtonClick() {
+    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+    intent.setType("*/*");
+    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // Allow multiple file selection.
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    startImportFileForResult.launch(Intent.createChooser(intent, "Select file(s)"));
   }
 
   private void showNoFileManagerError() {

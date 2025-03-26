@@ -27,6 +27,10 @@ public class BookmarkCategoriesAdapter extends BaseBookmarkCategoryAdapter<Recyc
   private final static int TYPE_ACTION_ADD = 2;
   private final static int TYPE_ACTION_IMPORT = 3;
   private final static int TYPE_ACTION_EXPORT_ALL_AS_KMZ = 4;
+  private final static int TYPE_ACTION_IMPORT_FILE = 5;
+  private final static int TYPE_SECTION_SEPARATOR = 6;
+
+
   @Nullable
   private OnItemLongClickListener<BookmarkCategory> mLongClickListener;
   @Nullable
@@ -82,6 +86,10 @@ public class BookmarkCategoriesAdapter extends BaseBookmarkCategoryAdapter<Recyc
         view.setOnLongClickListener(new LongClickListener(holder));
         return holder;
       }
+      case TYPE_SECTION_SEPARATOR -> {
+        View separator = inflater.inflate(R.layout.divider_horizontal, parent, false);
+        return new Holders.GeneralViewHolder(separator);
+      }
       case TYPE_ACTION_ADD ->
       {
         View item = inflater.inflate(R.layout.item_bookmark_button, parent, false);
@@ -100,6 +108,14 @@ public class BookmarkCategoriesAdapter extends BaseBookmarkCategoryAdapter<Recyc
         });
         return new Holders.GeneralViewHolder(item);
       }
+    case TYPE_ACTION_IMPORT_FILE -> {
+      View item = inflater.inflate(R.layout.item_bookmark_button, parent, false);
+      item.setOnClickListener(v -> {
+        if (mCategoryListCallback != null)
+          mCategoryListCallback.onImportFileButtonClick();
+      });
+      return new Holders.GeneralViewHolder(item);
+    }
       case TYPE_ACTION_EXPORT_ALL_AS_KMZ ->
       {
         View item = inflater.inflate(R.layout.item_bookmark_button, parent, false);
@@ -139,6 +155,9 @@ public class BookmarkCategoriesAdapter extends BaseBookmarkCategoryAdapter<Recyc
         CategoryItemMoreClickListener moreClickListener = new CategoryItemMoreClickListener(categoryHolder);
         categoryHolder.setMoreButtonClickListener(moreClickListener);
       }
+    case TYPE_SECTION_SEPARATOR -> {
+
+    }
       case TYPE_ACTION_ADD ->
       {
         Holders.GeneralViewHolder generalViewHolder = (Holders.GeneralViewHolder) holder;
@@ -150,6 +169,11 @@ public class BookmarkCategoriesAdapter extends BaseBookmarkCategoryAdapter<Recyc
         Holders.GeneralViewHolder generalViewHolder = (Holders.GeneralViewHolder) holder;
         generalViewHolder.getImage().setImageResource(R.drawable.ic_import);
         generalViewHolder.getText().setText(R.string.bookmarks_import);
+      }
+      case TYPE_ACTION_IMPORT_FILE -> {
+        Holders.GeneralViewHolder generalViewHolder = (Holders.GeneralViewHolder) holder;
+        generalViewHolder.getImage().setImageResource(R.drawable.ic_import);
+        generalViewHolder.getText().setText(R.string.bookmarks_import_file);
       }
       case TYPE_ACTION_EXPORT_ALL_AS_KMZ ->
       {
@@ -164,6 +188,9 @@ public class BookmarkCategoriesAdapter extends BaseBookmarkCategoryAdapter<Recyc
   @Override
   public int getItemViewType(int position)
   {
+    int categoryCount = super.getItemCount();
+
+
     /*
      * Adapter content:
      * - TYPE_ACTION_HEADER              = 0
@@ -177,16 +204,38 @@ public class BookmarkCategoriesAdapter extends BaseBookmarkCategoryAdapter<Recyc
     if (position == 0)
       return TYPE_ACTION_HEADER;
 
-    if (position == getItemCount() - 3)
+    if (position <= categoryCount)
+      return TYPE_CATEGORY_ITEM;
+    // Position for the separator:
+    if (position == categoryCount + 1)
+      return TYPE_SECTION_SEPARATOR;
+
+//    if (position == getItemCount() - 3)
+//      return TYPE_ACTION_ADD;
+//
+//    if (position == getItemCount() - 2)
+//      return TYPE_ACTION_IMPORT;
+//
+//    if (position == getItemCount() - 1)
+//      return TYPE_ACTION_EXPORT_ALL_AS_KMZ;
+//
+//    return TYPE_CATEGORY_ITEM;
+
+    int buttonPos = position - (categoryCount + 2);
+
+
+
+
+    switch (buttonPos) {
+    case 0:
       return TYPE_ACTION_ADD;
-
-    if (position == getItemCount() - 2)
+    case 1:
       return TYPE_ACTION_IMPORT;
-
-    if (position == getItemCount() - 1)
+    case 2:
+      return TYPE_ACTION_IMPORT_FILE;
+    case 3:
       return TYPE_ACTION_EXPORT_ALL_AS_KMZ;
-
-    return TYPE_CATEGORY_ITEM;
+    }
   }
 
   private int toCategoryPosition(int adapterPosition)
@@ -206,7 +255,8 @@ public class BookmarkCategoriesAdapter extends BaseBookmarkCategoryAdapter<Recyc
     int count = super.getItemCount();
     if (count == 0)
       return 0;
-    return 1 /* header */ + count + 1 /* add button */ + 1 /* import button */ + 1 /* export button */;
+//    return 1 /* header */ + count + 1 /* add button */ + 1 /* import button */ + 1 /* export button */;
+    return 1 + count + 4 + 1 /* separator */ ;
   }
 
   private class LongClickListener implements View.OnLongClickListener

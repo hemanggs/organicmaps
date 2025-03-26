@@ -4,5 +4,6 @@ interface CategoryListCallback
 {
   void onAddButtonClick();
   void onImportButtonClick();
+  void onImportFileButtonClick();
   void onExportButtonClick();
 }
