@@ -135,7 +135,7 @@ public class PlacePageController extends Fragment implements
         return;
 
       PlacePageUtils.updateMapViewport(mCoordinator, mDistanceToTop, mViewportMinHeight);
-
+      
       if (PlacePageUtils.isHiddenState(newState))
         onHiddenInternal();
     }
@@ -225,7 +225,9 @@ public class PlacePageController extends Fragment implements
 
   private void onHiddenInternal()
   {
-    Framework.nativeDeactivatePopup();
+    if (Framework.nativeGetChoosePositionMode() == Framework.ChoosePositionMode.NONE) {
+      Framework.nativeDeactivatePopup();
+    }
     PlacePageUtils.updateMapViewport(mCoordinator, mDistanceToTop, mViewportMinHeight);
     resetPlacePageHeightBounds();
     removePlacePageFragments();
