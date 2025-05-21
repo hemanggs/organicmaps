@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
@@ -31,10 +32,12 @@ import app.organicmaps.R;
 import app.organicmaps.bookmarks.data.DistanceAndAzimut;
 import app.organicmaps.bookmarks.data.MapObject;
 import app.organicmaps.bookmarks.data.Metadata;
+import app.organicmaps.dialog.EditTextDialogFragment;
 import app.organicmaps.downloader.CountryItem;
 import app.organicmaps.downloader.DownloaderStatusIcon;
 import app.organicmaps.downloader.MapManager;
 import app.organicmaps.editor.Editor;
+import app.organicmaps.editor.OsmOAuth;
 import app.organicmaps.location.LocationHelper;
 import app.organicmaps.location.LocationListener;
 import app.organicmaps.location.SensorHelper;
@@ -123,6 +126,7 @@ public class PlacePageView extends Fragment implements View.OnClickListener,
   private View mEditPlace;
   private View mAddOrganisation;
   private View mAddPlace;
+  private View mAddNote;
   private View mEditTopSpace;
 
   // Data
@@ -282,6 +286,8 @@ public class PlacePageView extends Fragment implements View.OnClickListener,
     mAddOrganisation.setOnClickListener(this);
     mAddPlace = mFrame.findViewById(R.id.ll__place_add);
     mAddPlace.setOnClickListener(this);
+    mAddNote = mFrame.findViewById(R.id.ll__add_note);
+    mAddNote.setOnClickListener(this);
     mEditTopSpace = mFrame.findViewById(R.id.edit_top_space);
     latlon.setOnLongClickListener(this);
     address.setOnLongClickListener(this);
@@ -446,7 +452,7 @@ public class PlacePageView extends Fragment implements View.OnClickListener,
 
     /// @todo I don't like it when we take all data from mapObject, but for cuisines, we should
     /// go into JNI Framework and rely on some "active object".
-    refreshMetadataOrHide(Framework.nativeGetActiveObjectFormattedCuisine(), mCuisine, mTvCuisine);
+    refreshMetadataOrHide(Framework.nativeGetActiveObjectFormattedCuisine(), mCuisine, mTvCuisine); // DO THIS ?
     refreshWiFi();
     refreshMetadataOrHide(mMapObject.getMetadata(Metadata.MetadataType.FMD_FLATS), mEntrance, mTvEntrance);
     final String level = Utils.getLocalizedLevel(getContext(), mMapObject.getMetadata(Metadata.MetadataType.FMD_LEVEL));
@@ -476,26 +482,34 @@ public class PlacePageView extends Fragment implements View.OnClickListener,
 
     if (RoutingController.get().isNavigating() || RoutingController.get().isPlanning())
     {
-      UiUtils.hide(mEditPlace, mAddOrganisation, mAddPlace, mEditTopSpace);
+      UiUtils.hide(mEditPlace, mAddOrganisation, mAddPlace, mAddNote, mEditTopSpace );
+
     }
     else
     {
       UiUtils.showIf(Editor.nativeShouldShowEditPlace(), mEditPlace);
       UiUtils.showIf(Editor.nativeShouldShowAddBusiness(), mAddOrganisation);
       UiUtils.showIf(Editor.nativeShouldShowAddPlace(), mAddPlace);
+//      UiUtils.showIf(Editor.nativeShouldShowAddPlace() , mAddNote);
+      UiUtils.show(mAddNote);
       mEditPlace.setEnabled(Editor.nativeShouldEnableEditPlace());
       mAddOrganisation.setEnabled(Editor.nativeShouldEnableAddPlace());
       mAddPlace.setEnabled(Editor.nativeShouldEnableAddPlace());
+      mAddNote.setEnabled(Editor.nativeShouldEnableAddPlace() );
       TextView mTvEditPlace = mEditPlace.findViewById(R.id.tv__editor);
-      TextView mTvAddBusiness = mAddPlace.findViewById(R.id.tv__editor);
+      TextView mTvAddBusiness = mAddPlace.findViewById(R.id.tv__editor); // are these colors req and can remove ?
       TextView mTvAddPlace = mAddPlace.findViewById(R.id.tv__editor);
+      TextView mTvAddNote = mAddPlace.findViewById(R.id.tv__editor);
       final int editPlaceButtonColor = Editor.nativeShouldEnableEditPlace() ? ContextCompat.getColor(getContext(), UiUtils.getStyledResourceId(getContext(), androidx.appcompat.R.attr.colorAccent)) : getResources().getColor(R.color.button_accent_text_disabled);
       mTvEditPlace.setTextColor(editPlaceButtonColor);
       mTvAddBusiness.setTextColor(editPlaceButtonColor);
       mTvAddPlace.setTextColor(editPlaceButtonColor);
+      mTvAddNote.setTextColor(editPlaceButtonColor);
       UiUtils.showIf(UiUtils.isVisible(mEditPlace)
                      || UiUtils.isVisible(mAddOrganisation)
-                     || UiUtils.isVisible(mAddPlace), mEditTopSpace);
+                     || UiUtils.isVisible(mAddPlace)
+                     || UiUtils.isVisible(mAddNote)
+          , mEditTopSpace);
     }
     updateLinksView();
     updateOpeningHoursView();
@@ -598,6 +612,8 @@ public class PlacePageView extends Fragment implements View.OnClickListener,
       addOrganisation();
     else if (id == R.id.ll__place_add)
       addPlace();
+    else if (id == R.id.ll__add_note) // <-- ADD THIS BLOCK
+      onAddOsmNoteClicked();
     else if (id == R.id.ll__place_latlon)
     {
       final int formatIndex = visibleCoordsFormat.indexOf(mCoordsFormat);
@@ -617,6 +633,65 @@ public class PlacePageView extends Fragment implements View.OnClickListener,
     else if (id == R.id.direction_frame)
       showBigDirection();
   }
+// START
+        private void onAddOsmNoteClicked() {
+          final Context context = requireContext();
+          // Step 1: Check OSM Login status
+          if (!OsmOAuth.isAuthorized(context)) {
+            // For simplicity, let's just show a toast for now.
+            // Later, you can navigate to OsmLoginActivity like in MwmActivity.
+            Toast.makeText(context, "Please log in to OSM to add a note.", Toast.LENGTH_LONG).show();
+            // Example of starting login activity (if this class could start activities easily,
+            // otherwise delegate to MwmActivity)
+            // Intent intent = new Intent(context, OsmLoginActivity.class);
+            // startActivity(intent);
+            return;
+          }
+
+          if (mMapObject == null) {
+            Toast.makeText(context, "Cannot get current location for note.", Toast.LENGTH_SHORT).show();
+            return;
+          }
+
+          // Step 2: Get current MapObject's coordinates for the note
+          // For this basic version, the note is associated with the Place Page's POI location.
+          double lat = mMapObject.getLat();
+          double lon = mMapObject.getLon();
+
+          // Step 3: Show Note Input Dialog
+          showNoteInputDialog(lat, lon);
+        }
+
+        private void showNoteInputDialog(double lat, double lon) {
+          final Context context = requireContext();
+          EditTextDialogFragment dialogFragment =
+              EditTextDialogFragment.show(
+                  getString(R.string.add_osm_note_title),
+                  "Initial text", // Initial text
+                  getString(R.string.osm_note_hint),
+                  getString(R.string.editor_report_problem_send_button),
+                  getString(R.string.cancel),
+                  this, //  Use getChildFragmentManager if calling from a Fragment
+                  getNoteValidator()
+              );
+          dialogFragment.setTextSaveListener(noteText -> {
+            Framework.nativeCreateStandaloneNote(lat, lon, noteText);
+            Toast.makeText(context, "TEST ", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, R.string.osm_note_sent, Toast.LENGTH_SHORT).show();
+          });
+        }
+
+        @NonNull
+        private EditTextDialogFragment.Validator getNoteValidator() {
+          return (activity, text) -> {
+            if (TextUtils.isEmpty(text))
+              return activity.getString(R.string.error_enter_note);
+            else
+              return null;
+          };
+        }
+
+// END
 
   private void showBigDirection()
   {
