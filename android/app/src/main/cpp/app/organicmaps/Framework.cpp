@@ -1197,6 +1197,27 @@ Java_app_organicmaps_Framework_nativeChangeWritableDir(JNIEnv * env, jclass, jst
   g_framework->AddLocalMaps();
 }
 
+ // START
+
+JNIEXPORT void JNICALL
+Java_app_organicmaps_Framework_nativeCreateStandaloneNote(JNIEnv * env, jclass clazz, jdouble lat, jdouble lon, jstring text)
+{
+  if (g_framework == nullptr)
+  {
+  LOG(LERROR, ("Framework is not initialized in JNI nativeCreateStandaloneNote"));
+  return;
+  }
+
+  std::string noteText = jni::ToNativeString(env, text);
+  ms::LatLon location(lat, lon);
+
+  // Call the C++ Framework's method
+  g_framework->NativeFramework()->CreateStandaloneNote(location, noteText);
+}
+
+
+// END
+
 JNIEXPORT jboolean JNICALL
 Java_app_organicmaps_Framework_nativeIsRoutingActive(JNIEnv * env, jclass)
 {

@@ -98,6 +98,9 @@ public class Framework
 
   public static native int nativeGetDrawScale();
 
+  // ... existing native methods ...
+  public static native void nativeCreateStandaloneNote(double lat, double lon, String text);
+
   public static native void nativePokeSearchInViewport();
 
   @Size(2)

@@ -222,7 +222,10 @@ public:
   void LoadMapsSync();
   void LoadMapsAsync(std::function<void()> && callback);
 
-  /// Registers all local map files in internal indexes.
+
+  void CreateStandaloneNote(ms::LatLon const & latLon, std::string const & note); // <-- ADD THIS DECLARATION
+
+    /// Registers all local map files in internal indexes.
   void RegisterAllMaps();
 
   /// Deregisters all registered map files.
@@ -305,6 +308,7 @@ public:
 private:
   void ActivateMapSelection();
   void InvalidateUserMarks();
+  std::shared_ptr<editor::Notes> m_notes;
 
   void DeactivateHotelSearchMark();
 

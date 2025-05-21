@@ -348,6 +348,18 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
 
   m_routingManager.SetTransitManager(&m_transitManager);
 
+  std::string notesFilePath = GetPlatform().WritablePathForFile("notes.xml");
+  LOG(LINFO, ("Initializing Notes system. Attempting to use notes.xml at path:", notesFilePath)); // <-- ADD THIS LOG
+
+  // Initialize the Notes system. "notes.xml" is the default filename used in Editor.cpp context.
+  // GetPlatform().WritablePathForFile() constructs the full path.
+  m_notes = editor::Notes::MakeNotes(GetPlatform().WritablePathForFile("notes.xml"), true /* fullPath=true */);
+  if (!m_notes)
+  {
+    LOG(LERROR, ("Failed to initialize the Notes system!"));
+  }
+
+
   // Init storage with needed callback.
   m_storage.Init(bind(&Framework::OnCountryFileDownloaded, this, _1, _2),
                  bind(&Framework::OnCountryFileDelete, this, _1, _2));
@@ -578,6 +590,34 @@ void Framework::FillPointInfoForBookmark(Bookmark const & bmk, place_page::Info 
     return std::equal(types.begin(), types.end(), fTypes.begin(), fTypes.end());
   });
 }
+
+void Framework::CreateStandaloneNote(ms::LatLon const & latLon, std::string const & note)
+{
+  if (!m_notes)
+  {
+    LOG(LERROR, ("Notes system is not available to create a standalone note."));
+    return;
+  }
+
+  if (note.empty())
+  {
+    LOG(LWARNING, ("Attempted to create an empty standalone note."));
+    return;
+  }
+
+  if (!mercator::ValidLat(latLon.m_lat) || !mercator::ValidLon(latLon.m_lon))
+  {
+    LOG(LWARNING, ("Attempted to create a standalone note with invalid coordinates:", latLon));
+    return;
+  }
+
+  LOG(LINFO, ("Creating standalone note at", latLon, "with text:", note.substr(0, 100) + "..."));
+  m_notes->CreateNote(latLon, note);
+  // The m_notes->CreateNote method itself handles saving to "notes.xml".
+  // Uploading is typically handled by a separate mechanism that calls m_notes->Upload(...)
+  // when network is available or on a schedule, so no direct upload call here.
+}
+
 
 void Framework::FillUserMarkInfo(UserMark const * mark, place_page::Info & outInfo)
 {

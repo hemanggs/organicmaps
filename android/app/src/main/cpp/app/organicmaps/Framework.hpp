@@ -63,6 +63,7 @@ namespace android
     drape_ptr<dp::ThreadSafeFactory> m_oglContextFactory;
     drape_ptr<dp::GraphicsContextFactory> m_vulkanContextFactory;
     ::Framework m_work;
+    std::shared_ptr<editor::Notes> m_notes;
 
     math::LowPassVector<float, 3> m_sensors[2];
     double m_lastCompass = 0;
@@ -107,6 +108,8 @@ namespace android
     bool AttachSurface(JNIEnv * env, jobject jSurface);
     void PauseSurfaceRendering();
     void ResumeSurfaceRendering();
+
+    void CreateStandaloneNote(ms::LatLon const & latLon, std::string const & note);
 
     void SetMapStyle(MapStyle mapStyle);
     void MarkMapStyle(MapStyle mapStyle);
