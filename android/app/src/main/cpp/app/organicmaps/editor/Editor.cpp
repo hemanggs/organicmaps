@@ -552,4 +552,13 @@ Java_app_organicmaps_editor_Editor_nativeMakeLocalizedName(JNIEnv * env, jclass 
   osm::LocalizedName localizedName(jni::ToNativeString(env, code), jni::ToNativeString(env, name));
   return ToJavaName(env, localizedName);
 }
+
+JNIEXPORT void JNICALL
+Java_app_organicmaps_editor_Editor_nativeChangeType(JNIEnv * env, jclass, jstring jType)
+{
+  auto const type = classif().GetTypeByReadableObjectName(jni::ToNativeString(env, jType));
+  g_editableMapObject.ChangeType(type);
+}
+
+
 } // extern "C"

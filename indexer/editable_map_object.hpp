@@ -95,8 +95,8 @@ public:
   void SetMercator(m2::PointD const & center);
   void SetType(uint32_t featureType);
   void SetTypes(feature::TypesHolder const & types);
+  void ChangeType(uint32_t newType);
   void SetID(FeatureID const & fid);
-
   void SetStreet(LocalizedStreet const & st);
   void SetNearbyStreets(std::vector<LocalizedStreet> && streets);
   void SetHouseNumber(std::string const & houseNumber);

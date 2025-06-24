@@ -20,6 +20,7 @@ import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
 import app.organicmaps.base.BaseMwmToolbarFragment;
 import app.organicmaps.bookmarks.data.Metadata;
+import app.organicmaps.editor.data.FeatureCategory;
 import app.organicmaps.editor.data.Language;
 import app.organicmaps.editor.data.LocalizedName;
 import app.organicmaps.editor.data.LocalizedStreet;
@@ -37,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EditorHostFragment extends BaseMwmToolbarFragment implements View.OnClickListener,
-    LanguagesFragment.Listener
+    LanguagesFragment.Listener,FeatureCategoryFragment.FeatureCategoryListener // Add the listener
 {
   private boolean mIsNewObject;
   @Nullable
@@ -53,7 +54,8 @@ public class EditorHostFragment extends BaseMwmToolbarFragment implements View.O
     CUISINE,
     LANGUAGE,
     PHONE,
-    SELF_SERVICE
+    SELF_SERVICE,
+    CATEGORY
   }
 
   private Mode mMode;
@@ -75,6 +77,16 @@ public class EditorHostFragment extends BaseMwmToolbarFragment implements View.O
   List<LocalizedName> getNames()
   {
     return sNames;
+  }
+
+  protected void editCategory()
+  {
+    // Reuse the existing fragment switching logic.
+    // pass the current category so it can be highlighted in the list.
+    final Bundle args = new Bundle();
+    args.putParcelable(FeatureCategoryActivity.EXTRA_FEATURE_CATEGORY,
+    new app.organicmaps.editor.data.FeatureCategory(Editor.nativeGetCategory(), ""));
+    editWithFragment(Mode.CATEGORY, R.string.editor_edit_place_title, args, FeatureCategoryFragment.class, true);
   }
 
   public LocalizedName[] getNamesAsArray()
@@ -120,6 +132,17 @@ public class EditorHostFragment extends BaseMwmToolbarFragment implements View.O
   {
     return inflater.inflate(R.layout.fragment_editor_host, container, false);
   }
+
+
+  @Override
+  public void onFeatureCategorySelected(FeatureCategory category)
+  {
+    // Call the new native method to update the core object.
+    Editor.nativeChangeType(category.getType());
+    // Switch back to the main editor view.
+    editMapObject();
+  }
+
 
   @CallSuper
   @Override

@@ -217,6 +217,25 @@ void EditableMapObject::SetType(uint32_t featureType)
     m_types.Add(featureType);
   }
 }
+void EditableMapObject::ChangeType(uint32_t newType)
+{
+  if (m_types.Empty())
+  {
+    SetType(newType);
+    return;
+  }
+
+  // Find the current main type by sorting by specificity.
+  feature::TypesHolder sortedTypes = m_types;
+  sortedTypes.SortBySpec();
+  uint32_t const oldType = sortedTypes.GetBestType();
+
+  if (oldType == newType)
+    return;
+
+  m_types.Remove(oldType);
+  m_types.Add(newType);
+}
 
 void EditableMapObject::SetTypes(feature::TypesHolder const & types) { m_types = types; }
 
@@ -708,6 +727,50 @@ void EditableMapObject::ApplyJournalEntry(JournalEntry const & entry)
 void EditableMapObject::LogDiffInJournal(EditableMapObject const & unedited_emo)
 {
   LOG(LDEBUG, ("Executing LogDiffInJournal"));
+
+  feature::TypesHolder sortedNew = m_types;
+  sortedNew.SortBySpec();
+  uint32_t const newBestType = sortedNew.GetBestType();
+
+  feature::TypesHolder sortedOld = unedited_emo.GetTypes();
+  sortedOld.SortBySpec();
+  uint32_t const oldBestType = sortedOld.GetBestType();
+
+  if (newBestType != 0 && oldBestType != 0 && newBestType != oldBestType)
+  {
+    auto const & cl = classif();
+    std::string const oldReadableName = cl.GetReadableObjectName(oldBestType);
+    std::string const newReadableName = cl.GetReadableObjectName(newBestType);
+
+    // simple parser for names like "amenity-restaurant". It splits at the first '-'.
+    // placeholder for  minimal implementation and can be made more robust later.
+    auto const getTypeComponents = [](std::string const & name) -> std::pair<std::string, std::string>
+    {
+        size_t const firstDash = name.find('-');
+        if (firstDash == std::string::npos)
+          return {};
+        return {name.substr(0, firstDash), name.substr(firstDash + 1)};
+    };
+
+    auto const oldKV = getTypeComponents(oldReadableName);
+    auto const newKV = getTypeComponents(newReadableName);
+
+    // Proceed only if both old and new types could be parsed into a key-value pair.
+    if (!oldKV.first.empty() && !newKV.first.empty())
+    {
+      if (oldKV.first == newKV.first)
+      {
+        // Key is the same, value changed (e.g., amenity=restaurant -> amenity=cafe)
+        m_journal.AddTagChange(oldKV.first, oldKV.second, newKV.second);
+      }
+      else
+      {
+        // Key and value changed (e.g., amenity=restaurant -> shop=clothes)
+        m_journal.AddTagChange(oldKV.first, oldKV.second, ""); // Log removal of old tag
+        m_journal.AddTagChange(newKV.first, "", newKV.second);   // Log addition of new tag
+      }
+    }
+  }
 
   // Name
   for (StringUtf8Multilang::Lang language : StringUtf8Multilang::GetSupportedLanguages())

@@ -170,6 +170,12 @@ public final class Editor
   public static native void nativeRollbackMapObject();
 
   /**
+   * Changes the main type of the feature being edited.
+   * @param type The new classificator type string (e.g. "shop-clothes").
+   */
+  public static native void nativeChangeType(@NonNull String type);
+
+  /**
    * @return all cuisines keys.
    */
   public static native String[] nativeGetCuisines();
