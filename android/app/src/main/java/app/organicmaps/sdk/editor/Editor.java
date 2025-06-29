@@ -48,7 +48,11 @@ public final class Editor
     if (nativeHasSomethingToUpload() && OsmOAuth.isAuthorized(context))
       nativeUploadChanges(OsmOAuth.getAuthToken(context), BuildConfig.VERSION_NAME, BuildConfig.APPLICATION_ID);
   }
-
+  /**
+   * Changes the main type of the feature being edited.
+   * @param type The new classificator type string (e.g. "shop-clothes").
+   */
+  public static native void nativeChangeType(@NonNull String type);
   public static native boolean nativeShouldShowEditPlace();
   public static native boolean nativeShouldShowAddBusiness();
   public static native boolean nativeShouldShowAddPlace();

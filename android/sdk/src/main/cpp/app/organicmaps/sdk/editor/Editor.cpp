@@ -91,6 +91,13 @@ Java_app_organicmaps_sdk_editor_Editor_nativeGetOpeningHours(JNIEnv * env, jclas
 }
 
 JNIEXPORT void JNICALL
+Java_app_organicmaps_sdk_editor_Editor_nativeChangeType(JNIEnv * env, jclass, jstring jType)
+{
+auto const type = classif().GetTypeByReadableObjectName(jni::ToNativeString(env, jType));
+g_editableMapObject.ChangeType(type);
+}
+
+JNIEXPORT void JNICALL
 Java_app_organicmaps_sdk_editor_Editor_nativeSetOpeningHours(JNIEnv * env, jclass, jstring value)
 {
   g_editableMapObject.SetOpeningHours(jni::ToNativeString(env, value));
