@@ -355,6 +355,10 @@ UNIT_TEST(XMLFeature_ApplyPatch)
 UNIT_TEST(XMLFeature_FromXMLAndBackToXML)
 {
   classificator::Load();
+  editor::EditorConfig config;
+  base::Json doc;
+  editor::ConfigLoader::LoadFromLocal(doc);
+  config.SetConfig(doc);
 
   std::string const xmlNoTypeStr = R"(<?xml version="1.0"?>
   <node lat="55.7978998" lon="37.474528" timestamp="2015-11-27T21:13:32Z">
@@ -372,12 +376,12 @@ UNIT_TEST(XMLFeature_FromXMLAndBackToXML)
   xmlWithType.SetTagValue("amenity", "atm");
 
   osm::EditableMapObject emo;
-  editor::FromXML(xmlWithType, emo);
-  auto fromFtWithType = editor::ToXML(emo, true);
+  editor::FromXML(xmlWithType, emo, config);
+  auto fromFtWithType = editor::ToXML(emo, true, config);
   fromFtWithType.SetAttribute("timestamp", kTimestamp);
   TEST_EQUAL(fromFtWithType, xmlWithType, ());
 
-  auto fromFtWithoutType = editor::ToXML(emo, false);
+  auto fromFtWithoutType = editor::ToXML(emo, false, config);
   fromFtWithoutType.SetAttribute("timestamp", kTimestamp);
   TEST_EQUAL(fromFtWithoutType, xmlNoType, ());
 }
@@ -385,6 +389,11 @@ UNIT_TEST(XMLFeature_FromXMLAndBackToXML)
 UNIT_TEST(XMLFeature_AmenityRecyclingFromAndToXml)
 {
   classificator::Load();
+  editor::EditorConfig config;
+  base::Json doc;
+  editor::ConfigLoader::LoadFromLocal(doc);
+  config.SetConfig(doc);
+
   {
     std::string const recyclingCentreStr = R"(<?xml version="1.0"?>
     <node lat="55.8047445" lon="37.5865532" timestamp="2018-07-11T13:24:41Z">
@@ -398,13 +407,13 @@ UNIT_TEST(XMLFeature_AmenityRecyclingFromAndToXml)
     editor::XMLFeature xmlFeature(recyclingCentreStr);
 
     osm::EditableMapObject emo;
-    editor::FromXML(xmlFeature, emo);
+    editor::FromXML(xmlFeature, emo, config);
 
     auto const th = emo.GetTypes();
     TEST_EQUAL(th.Size(), 1, ());
     TEST_EQUAL(th.front(), classif().GetTypeByPath({"amenity", "recycling", "centre"}), ());
 
-    auto convertedFt = editor::ToXML(emo, true);
+    auto convertedFt = editor::ToXML(emo, true, config);
     convertedFt.SetAttribute("timestamp", kTimestamp);
     TEST_EQUAL(xmlFeature, convertedFt, ());
   }
@@ -421,13 +430,13 @@ UNIT_TEST(XMLFeature_AmenityRecyclingFromAndToXml)
     editor::XMLFeature xmlFeature(recyclingContainerStr);
 
     osm::EditableMapObject emo;
-    editor::FromXML(xmlFeature, emo);
+    editor::FromXML(xmlFeature, emo, config);
 
     auto const th = emo.GetTypes();
     TEST_EQUAL(th.Size(), 1, ());
     TEST_EQUAL(th.front(), classif().GetTypeByPath({"amenity", "recycling", "container"}), ());
 
-    auto convertedFt = editor::ToXML(emo, true);
+    auto convertedFt = editor::ToXML(emo, true, config);
     convertedFt.SetAttribute("timestamp", kTimestamp);
     TEST_EQUAL(xmlFeature, convertedFt, ());
   }
@@ -483,6 +492,11 @@ UNIT_TEST(XMLFeature_Diet)
 
 UNIT_TEST(XMLFeature_SocialContactsProcessing)
 {
+  editor::EditorConfig config;
+  base::Json doc;
+  editor::ConfigLoader::LoadFromLocal(doc);
+  config.SetConfig(doc);
+
   {
     std::string const nightclubStr = R"(<?xml version="1.0"?>
     <node lat="50.4082862" lon="30.5130017" timestamp="2022-02-24T05:07:00Z">
@@ -497,9 +511,9 @@ UNIT_TEST(XMLFeature_SocialContactsProcessing)
     editor::XMLFeature xmlFeature(nightclubStr);
 
     osm::EditableMapObject emo;
-    editor::FromXML(xmlFeature, emo);
+    editor::FromXML(xmlFeature, emo, config);
 
-    auto convertedFt = editor::ToXML(emo, true);
+    auto convertedFt = editor::ToXML(emo, true, config);
 
     TEST(convertedFt.HasTag("contact:facebook"), ());
     TEST_EQUAL(convertedFt.GetTagValue("contact:facebook"), "https://facebook.com/pages/Stereo-Plaza/118100041593935", ());
@@ -514,6 +528,11 @@ UNIT_TEST(XMLFeature_SocialContactsProcessing)
 
 UNIT_TEST(XMLFeature_SocialContactsProcessing_clean)
 {
+  editor::EditorConfig config;
+  base::Json doc;
+  editor::ConfigLoader::LoadFromLocal(doc);
+  config.SetConfig(doc);
+
   {
     std::string const nightclubStr = R"(<?xml version="1.0"?>
     <node lat="40.82862" lon="20.30017" timestamp="2022-02-24T05:07:00Z">
@@ -528,9 +547,9 @@ UNIT_TEST(XMLFeature_SocialContactsProcessing_clean)
     editor::XMLFeature xmlFeature(nightclubStr);
 
     osm::EditableMapObject emo;
-    editor::FromXML(xmlFeature, emo);
+    editor::FromXML(xmlFeature, emo, config);
 
-    auto convertedFt = editor::ToXML(emo, true);
+    auto convertedFt = editor::ToXML(emo, true, config);
 
     TEST(convertedFt.HasTag("contact:facebook"), ());
     TEST_EQUAL(convertedFt.GetTagValue("contact:facebook"), "PierreCardinPeru.oficial", ());

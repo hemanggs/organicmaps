@@ -5,26 +5,19 @@
 
 #include "base/stl_helpers.hpp"
 
+
 UNIT_TEST(EditorConfig_TypeDescription)
 {
   using EType = feature::Metadata::EType;
   using Fields = editor::TypeAggregatedDescription::FeatureFields;
 
   Fields const poiInternet = {
-    EType::FMD_OPEN_HOURS,
-    EType::FMD_PHONE_NUMBER,
-    EType::FMD_WEBSITE,
-    EType::FMD_INTERNET,
-    EType::FMD_EMAIL,
-    EType::FMD_LEVEL,
-    EType::FMD_CONTACT_FACEBOOK,
-    EType::FMD_CONTACT_INSTAGRAM,
-    EType::FMD_CONTACT_TWITTER,
-    EType::FMD_CONTACT_VK,
-    EType::FMD_CONTACT_LINE,
+      EType::FMD_OPEN_HOURS,      EType::FMD_PHONE_NUMBER, EType::FMD_WEBSITE,          EType::FMD_INTERNET,
+      EType::FMD_EMAIL,           EType::FMD_LEVEL,        EType::FMD_CONTACT_FACEBOOK, EType::FMD_CONTACT_INSTAGRAM,
+      EType::FMD_CONTACT_TWITTER, EType::FMD_CONTACT_VK,   EType::FMD_CONTACT_LINE,
   };
 
-  pugi::xml_document doc;
+  base::Json doc;
   editor::ConfigLoader::LoadFromLocal(doc);
 
   editor::EditorConfig config;
@@ -75,7 +68,7 @@ UNIT_TEST(EditorConfig_TypeDescription)
 
 UNIT_TEST(EditorConfig_GetTypesThatCanBeAdded)
 {
-  pugi::xml_document doc;
+  base::Json doc;
   editor::ConfigLoader::LoadFromLocal(doc);
 
   editor::EditorConfig config;

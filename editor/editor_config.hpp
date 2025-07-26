@@ -1,13 +1,10 @@
 #pragma once
 
+#include "cppjansson/cppjansson.hpp"
 #include "indexer/feature_meta.hpp"
 
 #include <string>
 #include <vector>
-
-#include <pugixml.hpp>
-
-class Reader;
 
 namespace editor
 {
@@ -18,8 +15,7 @@ struct TypeAggregatedDescription
 
   bool IsEmpty() const
   {
-    return IsNameEditable() || IsAddressEditable() || IsCuisineEditable() ||
-           !m_editableFields.empty();
+    return IsNameEditable() || IsAddressEditable() || IsCuisineEditable() || !m_editableFields.empty();
   }
 
   FeatureFields const & GetEditableFields() const { return m_editableFields; }
@@ -45,13 +41,19 @@ public:
                           TypeAggregatedDescription & outDesc) const;
   std::vector<std::string> GetTypesThatCanBeAdded() const;
 
-  void SetConfig(pugi::xml_document const & doc);
+  void SetConfig(base::Json const & doc);
 
   // TODO(mgsergio): Implement this getter to avoid hard-code in XMLFeature::ApplyPatch.
   // It should return [[phone, contact:phone, contact:mobile], [website, contact:website, url], ...].
-  //vector<vector<string>> GetAlternativeFields() const;
+  // vector<vector<string>> GetAlternativeFields() const;
+  std::vector<std::pair<std::string, std::string>> GetPrimaryTags(std::string const & classificatorType) const;
+  std::string GetOmType(std::vector<std::pair<std::string, std::string>> const & tags) const;
 
 private:
-  pugi::xml_document m_document;
+  std::string GetOsmTagsKey(std::vector<std::pair<std::string, std::string>> tags) const;
+  void BuildReverseMapping();
+
+  base::Json m_document;
+  std::map<std::string, std::string> m_osmTagsToOmType;
 };
 }  // namespace editor
