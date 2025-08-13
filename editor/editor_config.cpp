@@ -146,6 +146,14 @@ bool TypeDescriptionFromJson(json_t const * rootDoc, json_t const * typeObject,
   return true;
 }
 
+json_t const * GetObject(json_t const * parent, char const * key)
+{
+  if (!parent || !json_is_object(parent))
+    return nullptr;
+  auto const * obj = json_object_get(parent, key);
+  return (obj && json_is_object(obj)) ? obj : nullptr;
+}
+
 std::string GetString(json_t const * parent, char const * key, std::string const & defaultValue = "")
 {
   if (!parent || !json_is_object(parent))
@@ -214,8 +222,7 @@ bool EditorConfig::GetTypeDescription(std::vector<std::string> classificatorType
   if (matches.empty())
     return isBuilding;
 
-  // Sorting multiple matches by priority, with the criteria: first by explicit priority tag ,then by original file
-  // order
+  // Sorting multiple matches by priority, with the criteria: first by explicit priority tag,then by original file order
   std::sort(matches.begin(), matches.end(),
             [](std::pair<json_t const *, size_t> const & a, std::pair<json_t const *, size_t> const & b)
   {
@@ -280,16 +287,18 @@ std::vector<std::pair<std::string, std::string>> EditorConfig::GetPrimaryTags(
     auto const * typeObject = json_array_get(types, i);
     if (GetString(typeObject, "id") == classificatorType)
     {
-      auto const * tagsArray = json_object_get(typeObject, "tags");
-      if (tagsArray && json_is_array(tagsArray))
+      auto const * tagsObject = GetObject(typeObject, "tags");
+      if (tagsObject)
       {
-        for (size_t j = 0; j < json_array_size(tagsArray); ++j)
+        void * iter = json_object_iter(const_cast<json_t *>(tagsObject));
+        while (iter)
         {
-          auto const * tagObj = json_array_get(tagsArray, j);
-          auto const key = GetString(tagObj, "key");
-          auto const value = GetString(tagObj, "value");
-          if (!key.empty())
-            result.emplace_back(key, value);
+          std::string const key = json_object_iter_key(iter);
+          json_t * valueNode = json_object_iter_value(iter);
+          if (json_is_string(valueNode))
+            result.emplace_back(key, json_string_value(valueNode));
+
+          iter = json_object_iter_next(const_cast<json_t *>(tagsObject), iter);
         }
       }
       break;

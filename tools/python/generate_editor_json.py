@@ -7,13 +7,13 @@ import xml.etree.ElementTree as ET
 from collections import OrderedDict
 
 def parse_mapcss_selectors(selectors_str):
-    """Parses MapCSS selectors like [key1=value1] into a list of tags."""
+    """Parses MapCSS selectors like [key1=value1] into a dictionary of tags."""
     primary_selectors = selectors_str.split(',')[0]
-    tags = []
+    tags = {}
     pattern = re.compile(r'\[([^=\]]+)=([^\]]+)\]')
     matches = pattern.findall(primary_selectors)
     for key, value in matches:
-        tags.append({"key": key, "value": value})
+        tags[key] = value
     return tags
 
 def get_tag_mapping_from_csv(csv_path):
@@ -30,7 +30,7 @@ def get_tag_mapping_from_csv(csv_path):
                 continue
 
             om_type = om_type_full.replace('|', '-')
-            tags = []
+            tags = {}
 
             # Long format: e.g., amenity|recycling|centre;[amenity=recycling][recycling_type=centre];...
             if len(row) > 5 and row[1].strip().startswith('['):
@@ -40,7 +40,7 @@ def get_tag_mapping_from_csv(csv_path):
             elif len(row) >= 2 and row[1].strip().isdigit():
                 parts = om_type_full.split('|')
                 if len(parts) >= 2:
-                    tags.append({"key": parts[0], "value": "|".join(parts[1:])})
+                    tags[parts[0]] = "|".join(parts[1:])
             if tags:
                 mapping[om_type] = tags
     return mapping
